@@ -8,7 +8,6 @@ jobs:
   deploy:
     uses: whodrey-labs/homelab-actions/.github/workflows/deploy-homelab.yml@main
     with:
-      deploy_path: /home/whodrey/docker/sites/leagueofbuilds
       compose_file: compose.yml
       branch: main
       use_tailscale: true
