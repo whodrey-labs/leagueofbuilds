@@ -1,2 +1,3 @@
-name: a
-hostname: a.whodrey.com
+name: leagueofbuilds
+type: docker
+container_port: 80
