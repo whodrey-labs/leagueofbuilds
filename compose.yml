@@ -1,0 +1,11 @@
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "${APP_PORT:-80}:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  frontend:
+    build: ./frontend
+  backend:
+    build: ./backend
