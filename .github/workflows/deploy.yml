@@ -7,10 +7,45 @@ on:
 
 jobs:
   deploy:
-    uses: whodrey-labs/homelab-actions/.github/workflows/deploy-homelab.yml@main
-    with:
-      deploy_path: /home/whodrey/docker/sites/${{ github.event.repository.name }}
-      compose_file: compose.yml
-      branch: main
-      use_tailscale: true
-    secrets: inherit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+
+      - name: Deploy via homelab pipeline
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.HOMELAB_HOST }}
+          username: ${{ secrets.HOMELAB_USER }}
+          key: ${{ secrets.HOMELAB_SSH_KEY }}
+          script: |
+            set -e
+
+            BRANCH="main"
+            SITE_NAME="${{ github.event.repository.name }}"
+            SITE_PATH="/home/${{ secrets.HOMELAB_USER }}/docker/sites/$SITE_NAME"
+            REPO_URL="https://github.com/${{ github.repository }}.git"
+            DEPLOY_SCRIPT="/home/${{ secrets.HOMELAB_USER }}/homelab-infra/scripts/deploy-site.sh"
+
+            echo "Site path: $SITE_PATH"
+            echo "Repo URL: $REPO_URL"
+            echo "Branch: $BRANCH"
+
+            mkdir -p "$(dirname "$SITE_PATH")"
+
+            if [ ! -d "$SITE_PATH/.git" ]; then
+              echo "Project folder does not exist yet. Cloning..."
+              rm -rf "$SITE_PATH"
+              git clone --branch "$BRANCH" "$REPO_URL" "$SITE_PATH"
+            else
+              echo "Project folder exists. Updating..."
+              cd "$SITE_PATH"
+              git fetch origin "$BRANCH"
+              git reset --hard "origin/$BRANCH"
+            fi
+
+            echo "Running homelab deploy pipeline..."
+            bash "$DEPLOY_SCRIPT" "$SITE_PATH"
