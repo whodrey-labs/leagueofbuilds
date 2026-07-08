@@ -2,8 +2,11 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-COPY index.js ./
+COPY package*.json ./
+RUN if [ -f package.json ]; then npm install --omit=dev; fi
+
+COPY . .
 
 EXPOSE 8080
 
-CMD ["node", "index.js"]
+CMD ["npm", "start"]

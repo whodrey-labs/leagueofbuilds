@@ -2,3 +2,4 @@ name: leagueofbuilds
 hostname: leagueofbuilds.whodrey.com
 type: docker
 container_port: 80
+access: public
